@@ -67,9 +67,18 @@ After every song has a score, the system sorts them from high to low and returns
 
 ### Sample Output
 
-Terminal output for the lofi/chill study listener profile:
+| High-Energy Pop | Lofi/Chill |
+|---|---|
+| ![High Energy Pop](image.png) | ![lofi chill](image-1.png) |
 
- ![Recommendations table output](image.png)
+| Deep Intense Rock | Edge: Conflicting Preferences (high energy + sad) |
+|---|---|
+| ![Intense Rock](image-2.png) | ![Sad high energy](image-3.png) |
+
+| Edge: Genre with Only One Song | Edge: Acoustic Preference Conflicts with Genre |
+|---|---|
+| ![one song only in csv](image-4.png) | ![conflict](image-5.png) |
+
 
 ### Potential Biases to Watch Out For
 
@@ -124,25 +133,21 @@ You can add more tests in `tests/test_recommender.py`.
 
 ## Experiments You Tried
 
-Use this section to document the experiments you ran. For example:
+We halved the genre weight from +2.0 to +1.0 and doubled the energy weight to max +2.0. The number one result stayed the same for every profile but the scores below it got much closer together. Songs from the wrong genre almost caught up to correct ones just because their energy was slightly closer. That showed how much the genre weight is doing to keep the results sensible.
 
-- What happened when you changed the weight on genre from 2.0 to 0.5
-- What happened when you added tempo or valence to the score
-- How did your system behave for different types of users
+We also tested six different user profiles including three edge cases. A blues user with one matching song got one real result and four filler songs. A soul user who wanted high energy got the genre match at number one but with a low score, and then high-energy songs from totally different genres filling the rest of the list. The system had no way to flag that those preferences were contradictory.
 
 ---
 
 ## Limitations and Risks
 
-Summarize some limitations of your recommender.
+The catalog only has 20 songs and most genres have just one. That means users who like blues, metal, folk, or any other underrepresented genre get mostly filler results after the first pick.
 
-Examples:
+Mood and genre matching are exact string checks so similar labels like chill and relaxed score zero against each other even though they feel basically the same.
 
-- It only works on a tiny catalog
-- It does not understand lyrics or language
-- It might over favor one genre or mood
+The system has no way to detect conflicting preferences. If a user asks for sad music but with very high energy it will just keep scoring and return confident-looking results that do not actually make sense together.
 
-You will go deeper on this in your model card.
+It also does not understand anything about what music actually sounds like. It works off numbers and labels only, so if those labels are wrong or missing the whole thing falls apart.
 
 ---
 
@@ -152,10 +157,9 @@ Read and complete `model_card.md`:
 
 [**Model Card**](model_card.md)
 
-Write 1 to 2 paragraphs here about what you learned:
+The main thing this project showed is that a recommender does not need to understand what it is recommending. It just needs good labels and numbers. When the features are chosen well, doing arithmetic on them produces results that feel surprisingly smart. The system has no idea what lofi music sounds like but it learned to surface the right songs anyway because energy, acousticness, and genre labels happen to capture the things that matter to a lofi listener.
 
-- about how recommenders turn data into predictions
-- about where bias or unfairness could show up in systems like this
+The place where bias shows up most easily is in the data, not the algorithm. The scoring logic treats every genre equally but the catalog does not represent every genre equally. That gap is enough to give some users a genuinely worse experience than others without any intentional decision being made. In a real product that kind of imbalance would be hard to spot unless you specifically went looking for it by testing with profiles that represent underserved groups.
 
 
 ---

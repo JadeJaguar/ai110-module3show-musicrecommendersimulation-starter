@@ -57,13 +57,29 @@ def main() -> None:
     songs = load_songs("data/songs.csv")
     print(f"Loaded songs: {len(songs)}")
 
-    # Taste profile: late-night study session listener
-    user_prefs = {
-        "genre": "lofi",
-        "mood": "chill",
-        "energy": 0.40,
-        "likes_acoustic": True,
-    }
+    # 1. High-Energy Pop
+    # user_prefs = { "genre": "pop", "mood": "happy",
+    #     "energy": 0.85, "likes_acoustic": False, }
+
+    # 2. Chill Lofi
+    user_prefs = { "genre": "lofi", "mood": "chill",
+        "energy": 0.40, "likes_acoustic": True, }
+
+    #3. Deep Intense Rock
+    # user_prefs = { "genre": "rock", "mood": "intense",
+    #     "energy": 0.90, "likes_acoustic": False, }
+
+    # 4. Edge: Conflicting preferences (high energy + sad)
+    # user_prefs = { "genre": "soul", "mood": "sad",
+    #     "energy": 0.90, "likes_acoustic": False,}
+
+    # 5. Edge: Genre with only one song in the catalog
+    # user_prefs = { "genre": "blues","mood": "sad",
+    #     "energy": 0.46, "likes_acoustic": True, }
+    
+    # 6. Edge: Acoustic preference conflicts with genre
+    # user_prefs = { "genre": "edm", "mood": "euphoric",
+    #     "energy": 0.95, "likes_acoustic": True, }
 
     recommendations = recommend_songs(user_prefs, songs, k=5)
     print_results_table(recommendations, user_prefs)
