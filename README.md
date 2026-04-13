@@ -17,17 +17,73 @@ Replace this paragraph with your own summary of what your version does.
 
 ## How The System Works
 
-Explain your design in plain language.
+Real platforms like Spotify and TikTok watch what you play, skip, and replay across millions of users and use that to figure out what to suggest next. Our version keeps it simpler. Instead of tracking behavior, we look directly at what a song sounds like and compare it to what the user says they want. Every song in the catalog gets a score. The top scoring songs are what we recommend. No mystery, no black box, just math on song attributes.
 
-Some prompts to answer:
+### What a Song knows about itself
 
-- What features does each `Song` use in your system
-  - For example: genre, mood, energy, tempo
-- What information does your `UserProfile` store
-- How does your `Recommender` compute a score for each song
-- How do you choose which songs to recommend
+Each `Song` in the catalog stores these features:
 
-You can include a simple diagram or bullet list if helpful.
+- `genre` - the broad style bucket (pop, lofi, rock, jazz, synthwave, ambient, indie pop, hip-hop, r&b, classical, metal, country, soul, edm, folk, latin, blues)
+- `mood` - the emotional vibe (happy, chill, intense, relaxed, focused, moody, hyped, romantic, peaceful, angry, nostalgic, melancholic, euphoric, dreamy, uplifting, sad)
+- `energy` - how loud and intense the track feels, from 0.0 to 1.0
+- `tempo_bpm` - the speed in beats per minute
+- `valence` - how musically bright or dark it sounds, from 0.0 to 1.0
+- `danceability` - how well it works for moving around, from 0.0 to 1.0
+- `acousticness` - how organic vs produced the sound is, from 0.0 to 1.0
+
+### What a UserProfile knows about the listener
+
+Each `UserProfile` stores what the user actually wants:
+
+- `favorite_genre` - the genre they want to hear
+- `favorite_mood` - the mood they are going for
+- `target_energy` - the energy level they prefer right now
+- `likes_acoustic` - whether they want acoustic or produced sound
+
+### The Algorithm Recipe
+
+Every song starts at zero points. Points get added based on how well the song fits the user. The song with the most points at the end wins.
+
+```
+score = genre match      (0 or +2.0 points)
+      + mood match       (0 or +1.0 points)
+      + energy proximity (+0.0 to 1.0 points)
+      + acoustic match   (0 or +1.0 points)
+
+max possible score = 5.0
+```
+
+**Genre gets the most points (+2.0)** because it is the strongest filter. A lofi fan and a metal fan do not share much, no matter how close the energy is. If genre does not match, two whole points are gone right away.
+
+**Mood is next (+1.0)** because it captures why someone is listening. Someone studying wants focused or chill. Someone working out wants intense or hyped. It matters a lot but it is a little softer than genre.
+
+**Energy uses proximity math (up to +1.0)** instead of a simple yes/no check. The formula is `1.0 - |song.energy - user.target_energy|`. So a song that is right on target gets close to a full point. A song that is way off still gets something, just not much. This is the only rule that gives partial credit on a sliding scale.
+
+**Acoustic preference is a binary check (+1.0)** using 0.5 as the dividing line. Songs above 0.5 acousticness are considered acoustic. Songs below are considered produced or electronic. Listeners who care about this tend to care a lot, so it is worth the same as a mood match.
+
+### How the final list gets picked
+
+After every song has a score, the system sorts them from high to low and returns the top k results. That is it. The scoring rule judges one song at a time. The ranking rule just looks at all the scores together and picks the winners.
+
+### Sample Output
+
+Terminal output for the lofi/chill study listener profile:
+
+ ![Recommendations table output](image.png)
+
+### Potential Biases to Watch Out For
+
+This system has a few blind spots worth knowing about before we run it.
+
+**Genre is a hard wall.** A jazz song that is perfect in every other way gets zero genre points if the user asked for lofi. That means genuinely great matches can get buried just because the genre label does not match exactly. A real system would give partial credit for related genres.
+
+**Mood labels are pretty coarse.** There are only a handful of mood options and they have to match exactly. A song tagged "relaxed" scores zero mood points for a user who wants "chill," even though those two things feel almost the same to most people.
+
+**Energy is the only soft signal.** Everything else is a hard yes or no. That means a song can score 4.0 out of 5.0 on genre plus mood plus acoustic alone, and energy barely matters. If two songs both match genre and mood, the one with slightly closer energy wins, but the margin is tiny.
+
+**The catalog is small.** With 20 songs, a user profile that matches only one or two genre/mood combos will always get the same small pool of songs back. There is not much room for surprise or variety.
+
+
 
 ---
 
